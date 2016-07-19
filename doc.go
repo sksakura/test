@@ -9,7 +9,7 @@ import (
 	"fmt"
 )
 
-func getFibvalue(n int) {
+func GetFibvalue(n int) {
 	fnc := fibbGenerator()
 	for i := 0; i < n; i++ {
 		fib := fnc()
