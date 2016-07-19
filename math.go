@@ -1,4 +1,3 @@
-
 package test
 
 import (
@@ -11,7 +10,7 @@ type Circle struct {
 }
 
 type Rectangle struct {
-	x1, y1, x2, y2 float64
+	X1, Y1, X2, Y2 float64
 }
 
 func (c *Circle) area() float64 {
@@ -23,13 +22,13 @@ func (c *Circle) perimeter() float64 {
 }
 
 func (r *Rectangle) area() float64 {
-	l := math.Abs(r.x2 - r.x1)
-	w := math.Abs(r.y2 - r.y1)
+	l := math.Abs(r.X2 - r.X1)
+	w := math.Abs(r.Y2 - r.Y1)
 	return l * w
 }
 
 func (r *Rectangle) perimeter() float64 {
-	var res float64 = 2 * (math.Abs(r.x2-r.x1) + math.Abs(r.y2-r.y1))
+	var res float64 = 2 * (math.Abs(r.X2-r.X1) + math.Abs(r.Y2-r.Y1))
 	return res
 }
 
@@ -45,11 +44,11 @@ func ShowTotalAreas(shapes ...Shape) {
 }
 
 type Multishape struct {
-	shapes []Shape
+	Shapes []Shape
 }
 
 func (m *Multishape) showPerimeters() {
-	for i := 0; i < len(m.shapes); i++ {
-		fmt.Println(i, ". perimeter=", m.shapes[i].perimeter())
+	for i := 0; i < len(m.Shapes); i++ {
+		fmt.Println(i, ". perimeter=", m.Shapes[i].perimeter())
 	}
 }
