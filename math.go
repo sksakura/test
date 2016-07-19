@@ -7,7 +7,7 @@ import (
 )
 
 type Circle struct {
-	x, y, r float64
+	X, Y, R float64
 }
 
 type Rectangle struct {
@@ -15,11 +15,11 @@ type Rectangle struct {
 }
 
 func (c *Circle) area() float64 {
-	return math.Pi * c.r
+	return math.Pi * c.R
 }
 
 func (c *Circle) perimeter() float64 {
-	return 2 * math.Pi * c.r
+	return 2 * math.Pi * c.R
 }
 
 func (r *Rectangle) area() float64 {
