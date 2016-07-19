@@ -3,7 +3,7 @@
 /*
 sks1 document
 */
-package sks1
+package test
 
 import (
 	"fmt"
