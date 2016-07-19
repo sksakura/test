@@ -47,7 +47,7 @@ type Multishape struct {
 	Shapes []Shape
 }
 
-func (m *Multishape) showPerimeters() {
+func (m *Multishape) ShowPerimeters() {
 	for i := 0; i < len(m.Shapes); i++ {
 		fmt.Println(i, ". perimeter=", m.Shapes[i].perimeter())
 	}
