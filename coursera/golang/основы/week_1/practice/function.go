@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-func main() {
+func mainf() {
 	printer := func(in string) {
 		fmt.Println("print: ", in)
 	}
