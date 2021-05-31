@@ -33,7 +33,7 @@ func (s1 *MySlice) Count() int {
 	return len(*s1)
 }
 
-func main() {
+func main3() {
 	var acc Account = Account{
 		Id:   1,
 		Name: "sksakura89",
