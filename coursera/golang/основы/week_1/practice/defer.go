@@ -15,7 +15,7 @@ func deferTest() {
 	panic("something happen")
 }
 
-func main() {
+func main34() {
 	defer fmt.Println("DEFER function call 2")
 	defer fmt.Println("DEFER function call 1")
 	fmt.Println("some work")
