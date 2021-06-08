@@ -2,22 +2,29 @@ package main
 
 import (
 	"fmt"
+	"sort"
 	"strconv"
+	"strings"
 	"sync"
-	"time"
 )
 
 var mu sync.Mutex
 
-func runJb(jb job, in chan interface{}, out chan interface{}) {
-	//mu.Lock()
+func runJb(wg *sync.WaitGroup, jb job, in chan interface{}, out chan interface{}) {
+
 	jb(in, out)
+	wg.Done()
+	close(out)
 	//mu.Unlock()
 }
 
 // сюда писать код
 // Написание функции ExecutePipeline которая обеспечивает нам конвейерную обработку функций-воркеров
 func ExecutePipeline(freeFlowJobs ...job) {
+
+	wg := &sync.WaitGroup{}
+	defer wg.Wait()
+
 	mu = sync.Mutex{}
 	var chans [100]chan interface{}
 	openChans := 0
@@ -31,36 +38,11 @@ func ExecutePipeline(freeFlowJobs ...job) {
 			in = chans[i-1]
 		}
 
-		go runJb(jb, in, chans[i])
+		wg.Add(1)
+		go runJb(wg, jb, in, chans[i])
 
 	}
 
-	for {
-		if len(chans[openChans-2]) > 0 {
-			break
-		}
-	}
-
-	for {
-		readyChans := 0
-		for i := 0; i < openChans; i++ {
-			if len(chans[i]) == 0 {
-				readyChans++
-			} else {
-				readyChans--
-			}
-			time.Sleep(time.Millisecond * 10)
-		}
-		if readyChans == openChans {
-			break
-		}
-	}
-	fmt.Println("KILL ALL CHANS")
-	for i := 0; i < openChans; i++ {
-		mu.Lock()
-		close(chans[i])
-		mu.Unlock()
-	}
 }
 
 //считает значение crc32(data)+"~"+crc32(md5(data)) ( конкатенация двух строк через ~),
@@ -92,9 +74,14 @@ func MultiHash(in, out chan interface{}) {
 	}
 }
 func CombineResults(in, out chan interface{}) {
-
+	arr := make([]string, 0)
 	for val := range in {
-		fmt.Println(val)
+		data := fmt.Sprint(val)
+		arr = append(arr, data)
 	}
-	fmt.Println("Now sort it")
+	sort.Strings(arr)
+	result := strings.Join(arr[:], "_")
+
+	out <- result
+
 }
