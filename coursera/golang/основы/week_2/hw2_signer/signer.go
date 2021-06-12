@@ -45,33 +45,88 @@ func ExecutePipeline(freeFlowJobs ...job) {
 
 }
 
+func cr32md5Calc(out chan string, val string, wg *sync.WaitGroup) {
+	mu.Lock()
+	md5 := DataSignerMd5(val)
+	mu.Unlock()
+	result := DataSignerCrc32(md5)
+	out <- result
+	wg.Done()
+	close(out)
+	//fmt.Println("cr32md5Calc = ", result)
+}
+
+func Cr32Calc(out chan string, val string, wg *sync.WaitGroup) {
+	result := DataSignerCrc32(val)
+	out <- result
+	close(out)
+	wg.Done()
+	//fmt.Println("Cr32Calc = ", result)
+}
+
 //считает значение crc32(data)+"~"+crc32(md5(data)) ( конкатенация двух строк через ~),
 //где data - то что пришло на вход (по сути - числа из первой функции)
-func SingleHash(in, out chan interface{}) {
+func SingleHash(in, sout chan interface{}) {
+	wg := &sync.WaitGroup{}
 	for val := range in {
+
 		data := fmt.Sprint(val)
-		md5 := DataSignerMd5(data)
-		cr32md5 := DataSignerCrc32(md5)
-		cr32 := DataSignerCrc32(data)
-		result := cr32 + "~" + cr32md5
-		out <- result
+		wg.Add(1)
+		go func(out chan interface{}, wg *sync.WaitGroup) {
+			cr32md5Chan := make(chan string, 1)
+			cr32Chan := make(chan string, 1)
+
+			wgS := &sync.WaitGroup{}
+			wgS.Add(1)
+			go cr32md5Calc(cr32md5Chan, data, wgS)
+
+			wgS.Add(1)
+			go Cr32Calc(cr32Chan, data, wgS)
+
+			wgS.Wait()
+
+			cr32md5 := <-cr32md5Chan
+			cr32 := <-cr32Chan
+
+			result := cr32 + "~" + cr32md5
+			//fmt.Println("result = ", result)
+			out <- result
+			wg.Done()
+		}(sout, wg)
 	}
+	wg.Wait()
+
 }
 
 //считает значение crc32(th+data)) (конкатенация цифры, приведённой к строке и строки),
 //где th=0..5 ( т.е. 6 хешей на каждое входящее значение ), потом берёт конкатенацию результатов в порядке расчета (0..5),
 // где data - то что пришло на вход (и ушло на выход из SingleHash)
 func MultiHash(in, out chan interface{}) {
+	wg := &sync.WaitGroup{}
 	for val := range in {
 		data := fmt.Sprint(val)
-		result := ""
-		for i := 0; i < 6; i++ {
-			th_data := strconv.Itoa(i) + data
-			crc32 := DataSignerCrc32(th_data)
-			result += crc32
-		}
-		out <- result
+		wg.Add(1)
+		go func(out chan interface{}, wg *sync.WaitGroup) {
+			result := ""
+
+			var chans [6]chan string
+			wgS := &sync.WaitGroup{}
+			for i := 0; i < 6; i++ {
+				chans[i] = make(chan string, 1)
+				wgS.Add(1)
+				go Cr32Calc(chans[i], strconv.Itoa(i)+data, wgS)
+			}
+			wgS.Wait()
+
+			for i := 0; i < 6; i++ {
+				crc32 := <-chans[i]
+				result += crc32
+			}
+			out <- result
+			wg.Done()
+		}(out, wg)
 	}
+	wg.Wait()
 }
 func CombineResults(in, out chan interface{}) {
 	arr := make([]string, 0)

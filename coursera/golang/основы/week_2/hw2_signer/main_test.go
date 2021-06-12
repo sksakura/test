@@ -120,6 +120,7 @@ func TestSigner(t *testing.T) {
 				t.Error("cant convert result data to string")
 			}
 			testResult = data
+			fmt.Println("Come to last job")
 		}),
 	}
 
